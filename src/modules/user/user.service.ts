@@ -1,18 +1,21 @@
 import { Injectable } from '@nestjs/common';
-import { IUser } from 'src/common';
+import { S3Service, StorageEnum } from 'src/common';
+import { UserDocument } from 'src/DB';
 
 @Injectable()
 export class UserService {
-  constructor() {}
+  constructor(private readonly s3Service: S3Service) {}
 
-  allUsers(): IUser[] {
-    return [
-      {
-        id: 2,
-        username: 'abdo',
-        email: 'abdo@gmail.com',
-        password: 'ahagahag',
-      },
-    ];
+  async profileImage(
+    file: Express.Multer.File,
+    user: UserDocument,
+  ): Promise<UserDocument> {
+    user.profilePicture = await this.s3Service.uploadfile({
+      file,
+      storageApproach: StorageEnum.memory,
+      path: `user/${user._id.toString()}`,
+    });
+    await user.save();
+    return user;
   }
 }

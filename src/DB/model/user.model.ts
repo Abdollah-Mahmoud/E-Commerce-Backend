@@ -6,8 +6,14 @@ import {
   Virtual,
 } from '@nestjs/mongoose';
 import { HydratedDocument } from 'mongoose';
-import { GenderEnum, generateHash, ProviderEnum } from 'src/common';
+import {
+  GenderEnum,
+  LanguageEnum,
+  ProviderEnum,
+  RoleEnum,
+} from 'src/common/enums';
 import { OtpDocument } from './otp.model';
+import { generateHash, IUser } from 'src/common';
 
 // new Schema({},{})
 @Schema({
@@ -16,7 +22,7 @@ import { OtpDocument } from './otp.model';
   toObject: { virtuals: true },
   toJSON: { virtuals: true },
 })
-export class User {
+export class User implements IUser{
   @Prop({
     type: String,
     required: true,
@@ -67,6 +73,9 @@ export class User {
   @Prop({ type: String, enum: ProviderEnum, default: ProviderEnum.SYSTEM })
   provider: ProviderEnum;
 
+  @Prop({ type: String, enum: RoleEnum, default: RoleEnum.user })
+  role: RoleEnum;
+
   @Prop({ type: String, enum: GenderEnum, default: GenderEnum.male })
   gender: GenderEnum;
 
@@ -78,6 +87,12 @@ export class User {
 
   @Virtual()
   otp?: OtpDocument[];
+
+  @Prop({ type: String, enum: LanguageEnum, default: LanguageEnum.EN })
+  preferredLanguage: LanguageEnum;
+
+  @Prop({ type: String })
+  profilePicture: string;
 }
 
 export type UserDocument = HydratedDocument<User>;

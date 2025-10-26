@@ -6,7 +6,6 @@ import {
   HttpStatus,
   Patch,
   Post,
-  Query,
   UsePipes,
   ValidationPipe,
 } from '@nestjs/common';
@@ -15,8 +14,9 @@ import {
   LoginBodyDto,
   ResendConfirmEmailDto,
   SignupBodyDto,
-  SignupQueryDto,
 } from './dto/signup.dto';
+import { IResponse, successResponse } from 'src/common';
+import { LoginResponse } from './entities/auth.entity';
 
 @UsePipes(
   new ValidationPipe({
@@ -33,42 +33,36 @@ export class AuthenticationController {
   async signup(
     @Body()
     body: SignupBodyDto,
-  ): Promise<{
-    message: string;
-  }> {
+  ): Promise<IResponse> {
     await this.authenticationService.signup(body);
-    return { message: 'done' };
+    return successResponse();
   }
 
   @Post('resend-confirm-email')
   async resendConfirmEmail(
     @Body()
     body: ResendConfirmEmailDto,
-  ): Promise<{
-    message: string;
-  }> {
+  ): Promise<IResponse> {
     await this.authenticationService.resendConfirmEmail(body);
-    return { message: 'done' };
+    return successResponse();
   }
 
   @Patch('confirm-email')
   async confirmEmail(
     @Body()
     body: ConfirmEmailDto,
-  ): Promise<{
-    message: string;
-  }> {
+  ): Promise<IResponse> {
     await this.authenticationService.confirmEmail(body);
-    return { message: 'done' };
+    return successResponse();
   }
 
   @Post('login')
   @HttpCode(HttpStatus.OK)
-  async login(@Body() Body: LoginBodyDto): Promise<{
-    message: string;
-    data: { credentials: { access_token: string; refresh_token: string } };
-  }> {
+  async login(@Body() Body: LoginBodyDto): Promise<IResponse<LoginResponse>> {
     const credentials = await this.authenticationService.login(Body);
-    return { message: 'Done', data: { credentials } };
+    return successResponse<LoginResponse>({
+      message: 'Done',
+      data: { credentials },
+    });
   }
 }

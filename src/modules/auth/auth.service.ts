@@ -9,6 +9,7 @@ import {
   compareHash,
   createNumericalOtp,
   IUser,
+  LoginCredentialsResponse,
   OtpEnum,
   ProviderEnum,
   SecurityService,
@@ -19,10 +20,11 @@ import {
   ResendConfirmEmailDto,
   SignupBodyDto,
 } from './dto/signup.dto';
-import { OtpRepository, UserRepository } from 'src/DB';
+import { OtpRepository, UserDocument, UserRepository } from 'src/DB';
 import { Types } from 'mongoose';
 import { sign } from 'crypto';
 import { JwtService } from '@nestjs/jwt';
+import { TokenService } from 'src/common/services/token.service';
 
 @Injectable()
 export class AuthenticationService {
@@ -31,7 +33,7 @@ export class AuthenticationService {
     private readonly userRepository: UserRepository,
     private readonly otpRepository: OtpRepository,
     private readonly securityService: SecurityService,
-    private readonly jwtService: JwtService,
+    private readonly tokenService: TokenService,
   ) {}
 
   private async createConfirmEmailOtp(userId: Types.ObjectId) {
@@ -128,9 +130,7 @@ export class AuthenticationService {
     return 'done';
   }
 
-  async login(
-    data: LoginBodyDto,
-  ): Promise<{ access_token: string; refresh_token: string }> {
+  async login(data: LoginBodyDto): Promise<LoginCredentialsResponse> {
     const { email, password } = data;
     const user = await this.userRepository.findOne({
       filter: {
@@ -145,16 +145,6 @@ export class AuthenticationService {
     if (!(await this.securityService.compareHash(password, user.password))) {
       throw new NotFoundException('Failed to find matching account');
     }
-    const credentials = {
-      access_token: await this.jwtService.signAsync(
-        { sub: user._id },
-        { secret: 'fefefe', expiresIn: 60 },
-      ),
-      refresh_token: await this.jwtService.signAsync(
-        { sub: user._id },
-        { secret: 'fefefedede', expiresIn: '1y' },
-      ),
-    };
-    return credentials;
+    return await this.tokenService.createLoginCredentials(user as UserDocument);
   }
 }
