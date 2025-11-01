@@ -10,6 +10,7 @@ import { ProductModule } from './modules/product/product.module';
 import { MongooseModule } from '@nestjs/mongoose';
 import { SharedAuthenticationModule } from './common/modules/auth.module';
 import { S3Service } from './common';
+import { BrandModule } from './modules/brand/brand.module';
 
 @Module({
   imports: [
@@ -23,6 +24,7 @@ import { S3Service } from './common';
     SharedAuthenticationModule,
     AuthenticationModule,
     UserModule,
+    BrandModule,
     CategoryModule,
     ProductModule,
   ],

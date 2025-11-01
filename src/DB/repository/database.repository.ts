@@ -86,7 +86,13 @@ export abstract class DatabaseRepository<
     options?: QueryOptions<TDocument> | undefined;
     page?: number | 'all';
     size?: number;
-  }): Promise<TDocument[] | [] | Lean<TDocument>[] | any> {
+  }): Promise<{
+    docsCount?: number;
+    limit?: number;
+    pages?: number;
+    currentPage?: number | undefined;
+    result: TDocument[] | Lean<TDocument>[];
+  }> {
     let docsCount: number | undefined = undefined;
     let pages: number | undefined = undefined;
     if (page !== 'all') {
@@ -114,7 +120,10 @@ export abstract class DatabaseRepository<
   }: {
     filter?: RootFilterQuery<TRawDocument>;
     select?: ProjectionType<TRawDocument> | null;
-    options?: QueryOptions<TDocument> | null;
+    options?: QueryOptions<TDocument> & {
+      populate?: PopulateOptions | PopulateOptions[] | string[];
+      lean?: boolean;
+    };
   }): Promise<Lean<TDocument> | TDocument | null> {
     const doc = this.model.findOne(filter).select(select || '');
 
@@ -172,6 +181,14 @@ export abstract class DatabaseRepository<
     update?: UpdateQuery<TDocument>;
     options?: QueryOptions<TDocument> | null;
   }): Promise<TDocument | Lean<TDocument> | null> {
+    if (Array.isArray(update)) {
+      update.push({
+        $set: {
+          __v: { $add: ['$__v', 1] },
+        },
+      });
+      return await this.model.findOneAndUpdate(filter, update, options);
+    }
     return this.model.findOneAndUpdate(
       filter,
       { ...update, $inc: { __v: 1 } },

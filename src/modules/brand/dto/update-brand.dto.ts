@@ -1,4 +1,6 @@
 import { PartialType } from '@nestjs/mapped-types';
+import { CreateBrandDto } from './create-brand.dto';
+
 import {
   Allow,
   IsMongoId,
@@ -7,23 +9,17 @@ import {
   IsOptional,
   IsPositive,
   IsString,
-  Validate,
 } from 'class-validator';
 import { Types } from 'mongoose';
-import { ContainField, MongoDBIds } from 'src/common';
+import { ContainField } from 'src/common';
 import { Type } from 'class-transformer';
-import { CreateCategoryDto } from './create-category.dto';
 
 @ContainField()
-export class UpdateCategoryDto extends PartialType(CreateCategoryDto) {
-  @Validate(MongoDBIds)
-  @IsOptional()
-  removedBrands?: Types.ObjectId[];
-}
+export class UpdateBrandDto extends PartialType(CreateBrandDto) {}
 
-export class CategoryParamsDto {
+export class BrandParamsDto {
   @IsMongoId()
-  categoryId: Types.ObjectId;
+  brandId: Types.ObjectId;
 }
 
 export class GetAllDto {
